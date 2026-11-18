@@ -1,11 +1,119 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>はじめてのサイト</title>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>デジタル時計</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  html, body {
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    color: #00ffcc;
+    font-family: "Segoe UI", "Meiryo", sans-serif;
+    overflow: hidden;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  .container {
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -ms-flex-pack: center;
+    justify-content: center;
+    -ms-flex-align: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+  }
+  #date {
+    font-size: 5vw;
+    color: #aaaaaa;
+    margin-bottom: 1vh;
+    letter-spacing: 0.05em;
+  }
+  #time {
+    font-size: 18vw;
+    font-weight: bold;
+    line-height: 1.1;
+    letter-spacing: 0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .seconds {
+    font-size: 9vw;
+    color: #00aa88;
+  }
+  .hint {
+    position: absolute;
+    bottom: 15px;
+    font-size: 14px;
+    color: #444444;
+  }
+</style>
 </head>
 <body>
-  <h1>こんにちは！</h1>
-  <p>はじめてのホームページです。</p>
+
+<div class="container" id="clockBox">
+  <div id="date">----/--/-- (---)</div>
+  <div id="time">--:--<span class="seconds">:--</span></div>
+  <div class="hint">F11キーで全画面表示 / 画面タップで色変更</div>
+</div>
+
+<script>
+  (function() {
+    var dateEl = document.getElementById('date');
+    var timeEl = document.getElementById('time');
+    var clockBox = document.getElementById('clockBox');
+    var weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+    
+    // タップで切り替えられる文字色のリスト
+    var colors = [
+      { main: '#00ffcc', sub: '#00aa88' }, // シアン（初期色）
+      { main: '#ffffff', sub: '#aaaaaa' }, // ホワイト
+      { main: '#ff9900', sub: '#cc6600' }, // アンバー（夜間向け）
+      { main: '#33ff33', sub: '#22aa22' }  // グリーン
+    ];
+    var colorIndex = 0;
+
+    function padZero(num) {
+      return (num < 10 ? '0' : '') + num;
+    }
+
+    function updateClock() {
+      var now = new Date();
+      var year = now.getFullYear();
+      var month = padZero(now.getMonth() + 1);
+      var day = padZero(now.getDate());
+      var week = weekdays[now.getDay()];
+
+      var hours = padZero(now.getHours());
+      var minutes = padZero(now.getMinutes());
+      var seconds = padZero(now.getSeconds());
+
+      dateEl.innerHTML = year + '年' + month + '月' + day + '日 (' + week + ')';
+      timeEl.innerHTML = hours + ':' + minutes + '<span class="seconds" style="color:' + colors[colorIndex].sub + '">:' + seconds + '</span>';
+    }
+
+    // 画面タップ（クリック）で文字色を変更
+    clockBox.onclick = function() {
+      colorIndex = (colorIndex + 1) % colors.length;
+      timeEl.style.color = colors[colorIndex].main;
+      updateClock();
+    };
+
+    // 初回実行と1秒ごとの更新
+    updateClock();
+    setInterval(updateClock, 1000);
+  })();
+</script>
+
 </body>
 </html>
