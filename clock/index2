@@ -1,1 +1,16 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ipad clock</title>
+</head>
+<body>
+  <h1>機種を選択する</h1>
+  <ul>
+    <li><a href="ipad2.html">ipad2</a></li>
+    <li><a href="ipad_mini.html">ipad mini</a></li>
+    <li><a href="clock.html">Clock only</a></li>
+  </ul>
+</body>
+</html>
 
