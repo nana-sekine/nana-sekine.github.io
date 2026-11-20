@@ -1,0 +1,28 @@
+name: Update Weather Data
+
+on:
+  schedule:
+    # 30分ごとに自動実行
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # 手動実行ボタンも有効化
+
+permissions:
+  contents: write
+
+jobs:
+  update-weather:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fetch weather for Sukagawa (962-0001)
+        run: |
+          curl -s "https://open-meteo.com" -o weather.json
+
+      - name: Commit and push weather.json
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add weather.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update weather" && git push)
