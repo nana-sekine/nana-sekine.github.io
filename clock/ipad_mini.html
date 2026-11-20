@@ -56,7 +56,7 @@
   }
   /* 3行目：天気予報 */
   #weather {
-    font-size: 4.8vw;
+    font-size: 4.5vw;
     color: #88ccff;
     margin-top: 2.5vh;
     letter-spacing: 0.03em;
@@ -77,7 +77,6 @@
     return (num < 10 ? '0' : '') + num;
   }
 
-  // 時計の更新（1秒ごと）
   function updateClock() {
     var now = new Date();
     var month = zeroPad(now.getMonth() + 1);
@@ -94,7 +93,6 @@
     document.getElementById('date').textContent = month + '月' + day + '日 (' + weekDay + ')';
   }
 
-  // 天気コードを日本語＋絵文字に変換
   function getWeatherText(code) {
     if (code === 0) return '☀️ 快晴';
     if (code === 1 || code === 2) return '🌤 晴れ';
@@ -108,7 +106,49 @@
     return '☁️ 曇り';
   }
 
-  // Open-Meteo (HTTPS + CORS対応) から須賀川市森宿（962-0001）の天気を取得
+  function formatJmaIcon(text) {
+    if (text.indexOf('雪') !== -1) return '❄️ ' + text;
+    if (text.indexOf('雨') !== -1) return '🌧 ' + text;
+    if (text.indexOf('晴') !== -1 && text.indexOf('曇') !== -1) return '🌤 ' + text;
+    if (text.indexOf('晴') !== -1) return '☀️ ' + text;
+    if (text.indexOf('曇') !== -1) return '☁️ ' + text;
+    return text;
+  }
+
+  // ルート2（予備）：気象庁データをプロキシ経由で取得
+  function fetchViaProxy() {
+    var jmaUrl = encodeURIComponent('https://jma.go.jp');
+    var proxyUrl = 'https://allorigins.win' + jmaUrl;
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', proxyUrl, true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          try {
+            var wrapper = JSON.parse(xhr.responseText);
+            var data = JSON.parse(wrapper.contents);
+            var weatherText = data.timeSeries.areas.weathers.replace(/　/g, ' ');
+            var temps = data.timeSeries.areas.temps;
+            var tempStr = '';
+            if (temps && temps.length >= 2 && temps !== temps) {
+              tempStr = ' (' + temps + '℃/' + temps + '℃)';
+            } else if (temps && temps.length >= 1) {
+              tempStr = ' (' + temps + '℃)';
+            }
+            document.getElementById('weather').textContent = 
+              '須賀川 ' + formatJmaIcon(weatherText) + tempStr;
+          } catch (e) {
+            document.getElementById('weather').textContent = '予備ルート解析失敗: ' + xhr.responseText.substring(0, 40);
+          }
+        } else {
+          document.getElementById('weather').textContent = '天気取得失敗 (HTTP ' + xhr.status + ')';
+        }
+      }
+    };
+    xhr.send();
+  }
+
+  // ルート1（メイン）：Open-Meteoから取得し、HTMLが返ってきたら自動でルート2へ切り替え
   function updateWeather() {
     var url = 'https://open-meteo.com';
     var xhr = new XMLHttpRequest();
@@ -116,8 +156,14 @@
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
+          var text = xhr.responseText.trim();
+          // HTML('<')が返ってきた場合はルート2へ切り替え
+          if (text.charAt(0) === '<') {
+            fetchViaProxy();
+            return;
+          }
           try {
-            var data = JSON.parse(xhr.responseText);
+            var data = JSON.parse(text);
             var todayCode = data.daily.weathercode;
             var maxTemp = Math.round(data.daily.temperature_2m_max);
             var minTemp = Math.round(data.daily.temperature_2m_min);
@@ -127,10 +173,10 @@
             document.getElementById('weather').textContent = 
               '須賀川 ' + weatherStr + '  現在 ' + currentTemp + '℃ (' + maxTemp + '℃/' + minTemp + '℃)';
           } catch (e) {
-            document.getElementById('weather').textContent = '解析エラー: ' + e.message;
+            fetchViaProxy();
           }
         } else {
-          document.getElementById('weather').textContent = '通信エラー (HTTP ' + xhr.status + ')';
+          fetchViaProxy();
         }
       }
     };
