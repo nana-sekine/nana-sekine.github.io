@@ -117,6 +117,7 @@
         if (xhr.status === 200) {
           try {
             var data = JSON.parse(xhr.responseText);
+            // 【修正箇所】配列の先頭（[0] = 今日）を指定
             var todayCode = data.daily.weathercode[0];
             var maxTemp = Math.round(data.daily.temperature_2m_max[0]);
             var minTemp = Math.round(data.daily.temperature_2m_min[0]);
@@ -126,10 +127,10 @@
             document.getElementById('weather').textContent = 
               '須賀川 ' + weatherStr + '  現在 ' + currentTemp + '℃ (' + maxTemp + '℃/' + minTemp + '℃)';
           } catch (e) {
-            document.getElementById('weather').textContent = '天気データの解析エラー';
+            document.getElementById('weather').textContent = '解析エラー: ' + e.message;
           }
         } else {
-          document.getElementById('weather').textContent = '天気の取得に失敗しました';
+          document.getElementById('weather').textContent = '天気の取得に失敗しました (HTTP ' + xhr.status + ')';
         }
       }
     };
@@ -141,7 +142,7 @@
   setInterval(updateClock, 1000);
 
   updateWeather();
-  setInterval(updateWeather, 30 * 60 * 1000); // 30分ごとに再取得
+  setInterval(updateWeather, 30 * 60 * 1000);
 </script>
 
 </body>
