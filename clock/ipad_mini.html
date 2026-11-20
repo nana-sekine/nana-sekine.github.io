@@ -104,7 +104,7 @@
   // 同じGitHub Pages上の weather.json を読み込む（証明書・CORSエラーなし）
   function updateWeather() {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', './weather.json?_=' + new Date().getTime(), true);
+    xhr.open('GET', '../weather.json?_=' + new Date().getTime(), true);
     xhr.onreadystatechange = function() {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
