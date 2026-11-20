@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- ホーム画面に追加した際に全画面（アプリ風）で表示する設定 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>デジタル時計</title>
@@ -20,7 +19,7 @@
     color: #ffffff;            /* 文字色：白 */
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     overflow: hidden;
-    -webkit-user-select: none; /* 文字の選択を無効化 */
+    -webkit-user-select: none;
   }
   .container {
     display: -webkit-flex;
@@ -35,18 +34,12 @@
     height: 100%;
     text-align: center;
   }
-  #date {
-    font-size: 6vw; /* 画面幅に応じたサイズ */
-    color: #aaaaaa;
-    margin-bottom: 2vh;
-    letter-spacing: 0.05em;
-  }
+  /* 1行目：時分 */
   #time {
-    font-size: 20vw; /* 画面幅に応じた特大サイズ */
+    font-size: 22vw;
     font-weight: bold;
     line-height: 1.1;
     letter-spacing: 0.02em;
-    /* 数字の幅を等幅にして秒が変わってもガタつかないようにする */
     font-variant-numeric: tabular-nums;
   }
   #seconds {
@@ -54,13 +47,20 @@
     color: #cccccc;
     margin-left: 1vw;
   }
+  /* 2行目：月日曜日 */
+  #date {
+    font-size: 7vw;
+    color: #aaaaaa;
+    margin-top: 2vh;
+    letter-spacing: 0.05em;
+  }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <div id="date">----/--/-- (-)</div>
   <div id="time">00:00<span id="seconds">00</span></div>
+  <div id="date">--月--日 (-)</div>
 </div>
 
 <script>
@@ -70,7 +70,6 @@
 
   function updateClock() {
     var now = new Date();
-    var year = now.getFullYear();
     var month = zeroPad(now.getMonth() + 1);
     var day = zeroPad(now.getDate());
     
@@ -81,11 +80,11 @@
     var minutes = zeroPad(now.getMinutes());
     var seconds = zeroPad(now.getSeconds());
 
-    document.getElementById('date').textContent = year + '年' + month + '月' + day + '日 (' + weekDay + ')';
+    // 1行目に時分秒、2行目に月日曜日をセット
     document.getElementById('time').innerHTML = hours + ':' + minutes + '<span id="seconds">' + seconds + '</span>';
+    document.getElementById('date').textContent = month + '月' + day + '日 (' + weekDay + ')';
   }
 
-  // 初回実行と1秒ごとの更新
   updateClock();
   setInterval(updateClock, 1000);
 </script>
