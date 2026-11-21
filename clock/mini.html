@@ -1,19 +1,19 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <!-- ホーム画面追加時にアドレスバーを消す設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <title>Simple Clock</title>
+  <title>Tall Clock</title>
+  <!-- 縦長フォント（Oswald）をGoogle Fontsから読み込み -->
+  <link href="https://googleapis.com" rel="stylesheet">
   <style>
     body {
       margin: 0;
       background-color: #000;
       color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Oswald', -apple-system, sans-serif;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -22,20 +22,29 @@
       overflow: hidden;
     }
     #time {
-      font-size: 35vw;
-      font-weight: bold;
-      letter-spacing: -0.02em;
+      font-size: 26vw;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+      /* フォントをさらに縦長に強調する設定（iOS 12対応） */
+      -webkit-transform: scaleY(1.35);
+      transform: scaleY(1.35);
+      margin-bottom: 5vh;
     }
     #date {
-      font-size: 20vw;
+      font-size: 6vw;
+      font-weight: 500;
       color: #888;
-      margin-top: 10px;
+      letter-spacing: 0.05em;
+      -webkit-transform: scaleY(1.2);
+      transform: scaleY(1.2);
     }
   </style>
 </head>
 <body>
   <div id="time">00:00</div>
-  <div id="date">2026/01/01 (Thu)</div>
+  <div id="date">11/21 (Sat)</div>
 
   <script>
     function updateClock() {
@@ -43,14 +52,13 @@
       var hours = ('0' + now.getHours()).slice(-2);
       var minutes = ('0' + now.getMinutes()).slice(-2);
       
-      var year = now.getFullYear();
       var month = ('0' + (now.getMonth() + 1)).slice(-2);
       var day = ('0' + now.getDate()).slice(-2);
       var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       var dayName = days[now.getDay()];
 
       document.getElementById('time').textContent = hours + ':' + minutes;
-      document.getElementById('date').textContent = month + '.' + day + ' (' + dayName + ')';
+      document.getElementById('date').textContent = month + '/' + day + ' (' + dayName + ')';
     }
 
     setInterval(updateClock, 1000);
