@@ -49,8 +49,8 @@
       var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       var dayName = days[now.getDay()];
 
-      document.getElementById('time').textContent = hours + ' : ' + minutes;
-      document.getElementById('date').textContent = month + ' / ' + day + ' (' + dayName + ')';
+      document.getElementById('time').textContent = hours + ':' + minutes;
+      document.getElementById('date').textContent = month + '.' + day + ' (' + dayName + ')';
     }
 
     setInterval(updateClock, 1000);
