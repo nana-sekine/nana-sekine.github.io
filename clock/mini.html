@@ -22,7 +22,7 @@
       overflow: hidden;
     }
     #time {
-      font-size: 22vw;
+      font-size: 60vw;
       font-weight: bold;
       letter-spacing: -0.02em;
     }
@@ -50,7 +50,7 @@
       var dayName = days[now.getDay()];
 
       document.getElementById('time').textContent = hours + ':' + minutes;
-      document.getElementById('date').textContent = year + '/' + month + '/' + day + ' (' + dayName + ')';
+      document.getElementById('date').textContent = month + '/' + day + ' (' + dayName + ')';
     }
 
     setInterval(updateClock, 1000);
