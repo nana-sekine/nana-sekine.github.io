@@ -7,8 +7,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>Tall Clock</title>
   
-  <!-- 紹介した全フォントをGoogle Fontsから一括読み込み -->
-  <link href="https://googleapis.com" rel="stylesheet">
+  <!-- iOS 12 Safari互換の旧API形式（Ralewayを追加） -->
+  <link href="https://googleapis.com|Bebas+Neue|Fjalla+One|Fredoka+One|Nunito:700|Oswald:700|Quicksand:700|Raleway:700|Teko:600|Varela+Round&display=swap" rel="stylesheet">
   
   <style>
     body {
@@ -22,7 +22,8 @@
       align-items: center;
       height: 100vh;
       overflow: hidden;
-      cursor: pointer;
+      -webkit-user-select: none;
+      user-select: none;
       -webkit-tap-highlight-color: transparent;
     }
     #time {
@@ -31,7 +32,7 @@
       line-height: 1;
       letter-spacing: 0.02em;
       
-      /* 高さと横幅を揃える設定 */
+      /* Lining Figures（高さ揃え）＋ Tabular Figures（等幅）の設定 */
       font-variant-numeric: lining-nums tabular-nums;
       -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
       font-feature-settings: "lnum" 1, "tnum" 1;
@@ -50,30 +51,41 @@
     }
     #font-label {
       position: fixed;
-      bottom: 15px;
-      font-size: 14px;
-      color: #444;
+      bottom: 20px;
+      font-size: 16px;
+      color: #666;
       font-family: -apple-system, sans-serif;
+    }
+    /* iOS Safariで画面タップを確実に受け取るための透明レイヤー */
+    #tap-area {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      cursor: pointer;
     }
   </style>
 </head>
-<body onclick="changeFont()">
+<body>
   <div id="time">00:00</div>
   <div id="date">11/21 (Sat)</div>
-  <div id="font-label">Font: Oswald (画面タップで変更)</div>
+  <div id="font-label">Font: Oswald (1/10) | Lining: ON</div>
+  <div id="tap-area"></div>
 
   <script>
-    // 切り替え用のフォント一覧
     var fonts = [
       'Oswald',
       'Bebas Neue',
       'Anton',
       'Teko',
       'Fjalla One',
-      'Fredoka',
+      'Fredoka One',
       'Nunito',
       'Quicksand',
-      'Varela Round'
+      'Varela Round',
+      'Raleway'
     ];
     var currentIndex = 0;
 
@@ -81,8 +93,10 @@
       currentIndex = (currentIndex + 1) % fonts.length;
       var selectedFont = fonts[currentIndex];
       document.body.style.fontFamily = "'" + selectedFont + "', -apple-system, sans-serif";
-      document.getElementById('font-label').textContent = 'Font: ' + selectedFont + ' (画面タップで変更)';
+      document.getElementById('font-label').textContent = 'Font: ' + selectedFont + ' (' + (currentIndex + 1) + '/' + fonts.length + ') | Lining: ON';
     }
+
+    document.getElementById('tap-area').addEventListener('click', changeFont);
 
     function updateClock() {
       var now = new Date();
