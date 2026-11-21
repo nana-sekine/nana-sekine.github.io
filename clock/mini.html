@@ -6,57 +6,84 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>Tall Clock</title>
-  <!-- 縦長フォント（Oswald）をGoogle Fontsから読み込み -->
+  
+  <!-- 紹介した全フォントをGoogle Fontsから一括読み込み -->
   <link href="https://googleapis.com" rel="stylesheet">
+  
   <style>
     body {
       margin: 0;
       background-color: #000;
-      color: #aaa;
-      font-family: 'Varela Round', -apple-system, sans-serif;
+      color: #fff;
+      font-family: 'Oswald', -apple-system, sans-serif;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
       overflow: hidden;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
-
-
-  #time {
-    font-family: 'Quicksand', -apple-system, sans-serif;
-    font-size: 26vw;
-    font-weight: 700;
-    
-    /* ここに設定を追加 */
-    font-variant-numeric: lining-nums tabular-nums;
-    -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
-    font-feature-settings: "lnum" 1, "tnum" 1;
-
-    /* 縦長にする設定 */
-    -webkit-transform: scaleY(1.4);
-    transform: scaleY(1.4);
-  }
-
-
-    
-    
-    
+    #time {
+      font-size: 26vw;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      
+      /* 高さと横幅を揃える設定 */
+      font-variant-numeric: lining-nums tabular-nums;
+      -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
+      font-feature-settings: "lnum" 1, "tnum" 1;
+      
+      /* 縦長に引き伸ばす設定 */
+      -webkit-transform: scaleY(1.35);
+      transform: scaleY(1.35);
+      margin-bottom: 6vh;
+    }
     #date {
       font-size: 6vw;
-      font-weight: 500;
       color: #888;
       letter-spacing: 0.05em;
       -webkit-transform: scaleY(1.2);
       transform: scaleY(1.2);
     }
+    #font-label {
+      position: fixed;
+      bottom: 15px;
+      font-size: 14px;
+      color: #444;
+      font-family: -apple-system, sans-serif;
+    }
   </style>
 </head>
-<body>
+<body onclick="changeFont()">
   <div id="time">00:00</div>
   <div id="date">11/21 (Sat)</div>
+  <div id="font-label">Font: Oswald (画面タップで変更)</div>
 
   <script>
+    // 切り替え用のフォント一覧
+    var fonts = [
+      'Oswald',
+      'Bebas Neue',
+      'Anton',
+      'Teko',
+      'Fjalla One',
+      'Fredoka',
+      'Nunito',
+      'Quicksand',
+      'Varela Round'
+    ];
+    var currentIndex = 0;
+
+    function changeFont() {
+      currentIndex = (currentIndex + 1) % fonts.length;
+      var selectedFont = fonts[currentIndex];
+      document.body.style.fontFamily = "'" + selectedFont + "', -apple-system, sans-serif";
+      document.getElementById('font-label').textContent = 'Font: ' + selectedFont + ' (画面タップで変更)';
+    }
+
     function updateClock() {
       var now = new Date();
       var hours = ('0' + now.getHours()).slice(-2);
