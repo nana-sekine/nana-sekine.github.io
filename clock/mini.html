@@ -26,7 +26,17 @@
       font-weight: 700;
       line-height: 1;
       letter-spacing: 0.02em;
-      font-variant-numeric: tabular-nums;
+      
+  /* 標準的な指定（iOS 12 Safari対応） */
+  font-variant-numeric: lining-nums tabular-nums;
+  
+  /* 古いブラウザや一部のフォントで確実に効かせるための保険 */
+  -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
+  font-feature-settings: "lnum" 1, "tnum" 1;riant-numeric: lining-nums tabular-nums;
+
+
+
+      
       /* フォントをさらに縦長に強調する設定（iOS 12対応） */
       -webkit-transform: scaleY(1.5);
       transform: scaleY(1.5);
