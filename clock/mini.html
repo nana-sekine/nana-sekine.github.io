@@ -3,23 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- ホーム画面追加時にアドレスバーを消す設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <title>Varela Round Clock</title>
+  <title>Custom Font Clock</title>
   <style>
-    @font-face {
-      font-family: 'ZenMaruGothic-Bold';
-      src: url('./ZenMaruGothic-Bold.ttf') format('truetype');
-      font-weight: normal;
-      font-style: normal;
-    }
-
     body {
       margin: 0;
       background-color: #000;
       color: #fff;
-      font-family: 'ZenMaruGothic-Bold', sans-serif;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -28,6 +19,8 @@
       overflow: hidden;
       -webkit-user-select: none;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
 
     #clock-wrapper {
@@ -38,25 +31,44 @@
     }
 
     #time {
-      font-size: 43vw;
+      font-size: 26vw;
       line-height: 1;
       letter-spacing: 0.02em;
-      /* 高さと横幅を揃える設定 */
       font-variant-numeric: lining-nums tabular-nums;
       -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
       font-feature-settings: "lnum" 1, "tnum" 1;
-      /* 縦長に引き伸ばす設定 */
-      -webkit-transform: scaleY(1.2);
-      transform: scaleY(1.2);
+      -webkit-transform: scaleY(1.4);
+      transform: scaleY(1.4);
       margin-bottom: 6vh;
     }
 
     #date {
-      font-size: 12vw;
-      color: #F60;
+      font-size: 6vw;
+      color: #888;
       letter-spacing: 0.05em;
       -webkit-transform: scaleY(1.2);
       transform: scaleY(1.2);
+      margin-bottom: 2vh;
+    }
+
+    /* 日付の次の行に表示されるフォント名 */
+    #font-name {
+      font-size: 2.5vw;
+      color: #555;
+      letter-spacing: 0.05em;
+      font-family: -apple-system, sans-serif;
+    }
+
+    /* 画面全体をタップ判定にする透明レイヤー */
+    #tap-area {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      cursor: pointer;
+      touch-action: manipulation;
     }
   </style>
 </head>
@@ -64,11 +76,53 @@
   <div id="clock-wrapper">
     <div id="time">00:00</div>
     <div id="date">11/23 (Mon)</div>
+    <div id="font-name">VarelaRound-Regular</div>
   </div>
+  <div id="tap-area"></div>
 
   <script>
+    // ==========================================
+    // ★ここにGitHubに置いた .ttf ファイル名を記述します
+    // ==========================================
+    var fontFiles = [
+      'VarelaRound-Regular.ttf',
+      'ZenMaruGothic-Bold.ttf',
+      'ZenMaruGothic-Medium.ttf'      
+      // フォントを増やす場合は、上にカンマ(,)をつけて 'ファイル名.ttf' を追加
+    ];
+
+    var currentIndex = 0;
     var lastMinute = -1;
 
+    // 配列のファイル名から @font-face を自動生成してページに適用する処理
+    var styleEl = document.createElement('style');
+    var cssRules = '';
+    for (var i = 0; i < fontFiles.length; i++) {
+      cssRules += "@font-face { font-family: 'CustomFont_" + i + "'; src: url('./" + fontFiles[i] + "') format('truetype'); }\n";
+    }
+    styleEl.textContent = cssRules;
+    document.head.appendChild(styleEl);
+
+    // フォントを適用する関数
+    function applyFont(index) {
+      var fontFamilyName = "'CustomFont_" + index + "', sans-serif";
+      document.getElementById('time').style.fontFamily = fontFamilyName;
+      document.getElementById('date').style.fontFamily = fontFamilyName;
+      
+      // 拡張子(.ttf)を取り除いて表示
+      var displayName = fontFiles[index].replace(/\.ttf$/i, '');
+      document.getElementById('font-name').textContent = displayName;
+    }
+
+    // タップ時に次のフォントへ切り替え
+    function nextFont() {
+      currentIndex = (currentIndex + 1) % fontFiles.length;
+      applyFont(currentIndex);
+    }
+
+    document.getElementById('tap-area').addEventListener('click', nextFont);
+
+    // 時計の更新処理
     function updateClock() {
       var now = new Date();
       var hours = ('0' + now.getHours()).slice(-2);
@@ -80,19 +134,21 @@
       var dayName = days[now.getDay()];
 
       document.getElementById('time').textContent = hours + ':' + minutes;
-      document.getElementById('date').textContent = month + '/' + day + ' ' + dayName;
+      document.getElementById('date').textContent = month + '/' + day + ' (' + dayName + ')';
 
-      // 画面の焼き付き防止（1分ごとに位置を数ピクセルだけずらす）
+      // 1分ごとの焼き付き防止
       if (now.getMinutes() !== lastMinute) {
         lastMinute = now.getMinutes();
-        var offsetX = Math.floor(Math.random() * 11) - 5; // -5px 〜 +5px
-        var offsetY = Math.floor(Math.random() * 11) - 5; // -5px 〜 +5px
+        var offsetX = Math.floor(Math.random() * 11) - 5;
+        var offsetY = Math.floor(Math.random() * 11) - 5;
         var wrapper = document.getElementById('clock-wrapper');
         wrapper.style.webkitTransform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
         wrapper.style.transform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
       }
     }
 
+    // 初期表示の実行
+    applyFont(0);
     setInterval(updateClock, 1000);
     updateClock();
   </script>
