@@ -104,7 +104,7 @@
     var styleEl = document.createElement('style');
     var cssRules = '';
     for (var i = 0; i < fontConfigs.length; i++) {
-      var fileName = fontConfigs[i];
+      var fileName = fontConfigs[i][0];
       cssRules += "@font-face { font-family: 'CustomFont_" + i + "'; src: url('./" + fileName + "') format('truetype'); }\n";
     }
     styleEl.textContent = cssRules;
@@ -113,11 +113,11 @@
     // フォントとサイズ・間隔設定を適用する関数
     function applyFont(index) {
       var config = fontConfigs[index];
-      var fileName = config;
-      var timeSize = config;
-      var timeScaleY = config;
-      var gapSize = config;
-      var dateSize = config;
+      var fileName = config[0];
+      var timeSize = config[1];
+      var timeScaleY = config[2];
+      var gapSize = config[3];
+      var dateSize = config[4];
 
       var fontFamilyName = "'CustomFont_" + index + "', sans-serif";
       var timeEl = document.getElementById('time');
