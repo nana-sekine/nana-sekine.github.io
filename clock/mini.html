@@ -38,7 +38,7 @@
     }
 
     #time {
-      font-size: 33vw;
+      font-size: 38vw;
       line-height: 1;
       letter-spacing: 0.02em;
       /* 高さと横幅を揃える設定 */
@@ -46,14 +46,14 @@
       -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
       font-feature-settings: "lnum" 1, "tnum" 1;
       /* 縦長に引き伸ばす設定 */
-      -webkit-transform: scaleY(1.4);
-      transform: scaleY(1.4);
+      -webkit-transform: scaleY(1.2);
+      transform: scaleY(1.2);
       margin-bottom: 6vh;
     }
 
     #date {
       font-size: 12vw;
-      color: #888;
+      color: #666;
       letter-spacing: 0.05em;
       -webkit-transform: scaleY(1.2);
       transform: scaleY(1.2);
@@ -80,7 +80,7 @@
       var dayName = days[now.getDay()];
 
       document.getElementById('time').textContent = hours + ':' + minutes;
-      document.getElementById('date').textContent = month + '/' + day + ' (' + dayName + ')';
+      document.getElementById('date').textContent = month + '/' + day + ' ' + dayName;
 
       // 画面の焼き付き防止（1分ごとに位置を数ピクセルだけずらす）
       if (now.getMinutes() !== lastMinute) {
