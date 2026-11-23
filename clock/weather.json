@@ -13,7 +13,7 @@
 		<link href="/_app/immutable/chunks/DXmSKBnn.js" rel="modulepreload">
 		<link href="/_app/immutable/chunks/DUhB3PK9.js" rel="modulepreload">
 		<link href="/_app/immutable/chunks/PKGtCPZq.js" rel="modulepreload">
-		<link href="/_app/immutable/entry/app.DBY62oCu.js" rel="modulepreload">
+		<link href="/_app/immutable/entry/app.BmDHrT1q.js" rel="modulepreload">
 		<link href="/_app/immutable/nodes/0.BvgvaB-M.js" rel="modulepreload">
 		<link href="/_app/immutable/chunks/XKyaHtl9.js" rel="modulepreload">
 		<link href="/_app/immutable/chunks/D3DdhKXo.js" rel="modulepreload">
@@ -103,16 +103,16 @@
 			
 			<script>
 				{
-					__sveltekit_17xh1m = {
+					__sveltekit_dlbnw3 = {
 						base: "",
-						version: "5abec50cf4bdd0959881aad670b90594429ef2e0"
+						version: "96cdf6771568d82c8ea1e4e33d8374f81b6a2271"
 					};
 
 					const element = document.currentScript.parentElement;
 
 					import("/_app/immutable/entry/start.BA7V922k.js").then(async (kit) => {
-						kit.init(__sveltekit_17xh1m);
-						const app = await import("/_app/immutable/entry/app.DBY62oCu.js");
+						kit.init(__sveltekit_dlbnw3);
+						const app = await import("/_app/immutable/entry/app.BmDHrT1q.js");
 						kit.start(app, element, {
 							node_ids: [0, 42],
 							data: [null,null],
