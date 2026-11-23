@@ -31,19 +31,14 @@
     }
 
     #time {
-      font-size: 26vw;
       line-height: 1;
       letter-spacing: 0.02em;
       font-variant-numeric: lining-nums tabular-nums;
       -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
       font-feature-settings: "lnum" 1, "tnum" 1;
-      -webkit-transform: scaleY(1.4);
-      transform: scaleY(1.4);
-      margin-bottom: 6vh;
     }
 
     #date {
-      font-size: 6vw;
       color: #888;
       letter-spacing: 0.05em;
       -webkit-transform: scaleY(1.2);
@@ -51,7 +46,6 @@
       margin-bottom: 2vh;
     }
 
-    /* 日付の次の行に表示されるフォント名 */
     #font-name {
       font-size: 2.5vw;
       color: #555;
@@ -59,7 +53,6 @@
       font-family: -apple-system, sans-serif;
     }
 
-    /* 画面全体をタップ判定にする透明レイヤー */
     #tap-area {
       position: fixed;
       top: 0;
@@ -81,48 +74,65 @@
   <div id="tap-area"></div>
 
   <script>
-    // ==========================================
-    // ★ここにGitHubに置いた .ttf ファイル名を記述します
-    // ==========================================
-    var fontFiles = [
-      'VarelaRound-Regular.ttf',
-      'ZenMaruGothic-Bold.ttf',
-      'ZenMaruGothic-Medium.ttf'      
-      // フォントを増やす場合は、上にカンマ(,)をつけて 'ファイル名.ttf' を追加
+    // =========================================================================================
+    // ★設定リスト： ['fontname.ttf', 時刻サイズ(vw), 時刻scaleY, 時刻と日付の間隔(vh), 日付サイズ(vw)]
+    // =========================================================================================
+    var fontConfigs = [
+      ['VarelaRound-Regular.ttf', 26, 1.4, 6, 6],
+      ['Nunito-Bold.ttf', 27, 1.35, 5.5, 6.5]
+      // 追加例（最後の行以外は末尾にカンマ , をつけてください）：
+      // ['Oswald-Bold.ttf', 30, 1.2, 4, 7]
     ];
 
     var currentIndex = 0;
     var lastMinute = -1;
 
-    // 配列のファイル名から @font-face を自動生成してページに適用する処理
+    // @font-face を自動生成
     var styleEl = document.createElement('style');
     var cssRules = '';
-    for (var i = 0; i < fontFiles.length; i++) {
-      cssRules += "@font-face { font-family: 'CustomFont_" + i + "'; src: url('./" + fontFiles[i] + "') format('truetype'); }\n";
+    for (var i = 0; i < fontConfigs.length; i++) {
+      var fileName = fontConfigs[i][0];
+      cssRules += "@font-face { font-family: 'CustomFont_" + i + "'; src: url('./" + fileName + "') format('truetype'); }\n";
     }
     styleEl.textContent = cssRules;
     document.head.appendChild(styleEl);
 
-    // フォントを適用する関数
+    // フォントとサイズ・間隔設定を適用する関数
     function applyFont(index) {
+      var config = fontConfigs[index];
+      var fileName = config[0];
+      var timeSize = config[1];
+      var timeScaleY = config[2];
+      var gapSize = config[3];
+      var dateSize = config[4];
+
       var fontFamilyName = "'CustomFont_" + index + "', sans-serif";
-      document.getElementById('time').style.fontFamily = fontFamilyName;
-      document.getElementById('date').style.fontFamily = fontFamilyName;
+      var timeEl = document.getElementById('time');
+      var dateEl = document.getElementById('date');
+
+      // 時刻のスタイル反映
+      timeEl.style.fontFamily = fontFamilyName;
+      timeEl.style.fontSize = timeSize + 'vw';
+      timeEl.style.webkitTransform = 'scaleY(' + timeScaleY + ')';
+      timeEl.style.transform = 'scaleY(' + timeScaleY + ')';
+      timeEl.style.marginBottom = gapSize + 'vh';
+
+      // 日付のスタイル反映
+      dateEl.style.fontFamily = fontFamilyName;
+      dateEl.style.fontSize = dateSize + 'vw';
       
       // 拡張子(.ttf)を取り除いて表示
-      var displayName = fontFiles[index].replace(/\.ttf$/i, '');
+      var displayName = fileName.replace(/\.ttf$/i, '');
       document.getElementById('font-name').textContent = displayName;
     }
 
-    // タップ時に次のフォントへ切り替え
     function nextFont() {
-      currentIndex = (currentIndex + 1) % fontFiles.length;
+      currentIndex = (currentIndex + 1) % fontConfigs.length;
       applyFont(currentIndex);
     }
 
     document.getElementById('tap-area').addEventListener('click', nextFont);
 
-    // 時計の更新処理
     function updateClock() {
       var now = new Date();
       var hours = ('0' + now.getHours()).slice(-2);
@@ -147,7 +157,6 @@
       }
     }
 
-    // 初期表示の実行
     applyFont(0);
     setInterval(updateClock, 1000);
     updateClock();
