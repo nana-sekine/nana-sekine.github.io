@@ -3,15 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- ホーム画面追加時にアドレスバーを消す設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <title>Tall Clock</title>
+  <title>Varela Round Clock</title>
   <style>
+    @font-face {
+      font-family: 'VarelaRound';
+      src: url('./VarelaRound-Regular.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     body {
       margin: 0;
       background-color: #000;
       color: #fff;
-      font-family: 'HelveticaNeue-CondensedBold', sans-serif;
+      font-family: 'VarelaRound', sans-serif;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -20,20 +28,29 @@
       overflow: hidden;
       -webkit-user-select: none;
       user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
     }
+
+    #clock-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 1s ease;
+    }
+
     #time {
       font-size: 26vw;
       line-height: 1;
       letter-spacing: 0.02em;
+      /* 高さと横幅を揃える設定 */
       font-variant-numeric: lining-nums tabular-nums;
       -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
       font-feature-settings: "lnum" 1, "tnum" 1;
-      -webkit-transform: scaleY(1.35);
-      transform: scaleY(1.35);
+      /* 縦長に引き伸ばす設定 */
+      -webkit-transform: scaleY(1.4);
+      transform: scaleY(1.4);
       margin-bottom: 6vh;
     }
+
     #date {
       font-size: 6vw;
       color: #888;
@@ -41,60 +58,16 @@
       -webkit-transform: scaleY(1.2);
       transform: scaleY(1.2);
     }
-    #font-label {
-      position: fixed;
-      bottom: 20px;
-      font-size: 15px;
-      color: #666;
-      font-family: -apple-system, sans-serif;
-    }
-    #tap-area {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 10;
-      cursor: pointer;
-      touch-action: manipulation;
-    }
   </style>
 </head>
 <body>
-  <div id="time">00:00</div>
-  <div id="date">11/21 (Sat)</div>
-  <div id="font-label">Font: HelveticaNeue-CondensedBold (1/10)</div>
-  <div id="tap-area"></div>
+  <div id="clock-wrapper">
+    <div id="time">00:00</div>
+    <div id="date">11/23 (Mon)</div>
+  </div>
 
   <script>
-    // iOS 12（iPad mini 2）に最初から内蔵されているフォント一覧
-    var fonts = [
-      'HelveticaNeue-CondensedBold',
-      'HelveticaNeue-CondensedBlack',
-      'Futura-CondensedExtraBold',
-      'Futura-CondensedMedium',
-      'AvenirNextCondensed-Bold',
-      'AvenirNextCondensed-Heavy',
-      'ArialRoundedMTBold',
-      'Hiragino Maru Gothic ProN',
-      'DINAlternate-Bold',
-      'TrebuchetMS-Bold'
-    ];
-    var currentIndex = 0;
-
-    function changeFont() {
-      currentIndex = (currentIndex + 1) % fonts.length;
-      var selectedFont = fonts[currentIndex];
-      var timeEl = document.getElementById('time');
-      var dateEl = document.getElementById('date');
-      
-      timeEl.style.fontFamily = "'" + selectedFont + "', sans-serif";
-      dateEl.style.fontFamily = "'" + selectedFont + "', sans-serif";
-      
-      document.getElementById('font-label').textContent = 'Font: ' + selectedFont + ' (' + (currentIndex + 1) + '/' + fonts.length + ')';
-    }
-
-    document.getElementById('tap-area').addEventListener('click', changeFont);
+    var lastMinute = -1;
 
     function updateClock() {
       var now = new Date();
@@ -108,6 +81,16 @@
 
       document.getElementById('time').textContent = hours + ':' + minutes;
       document.getElementById('date').textContent = month + '/' + day + ' (' + dayName + ')';
+
+      // 画面の焼き付き防止（1分ごとに位置を数ピクセルだけずらす）
+      if (now.getMinutes() !== lastMinute) {
+        lastMinute = now.getMinutes();
+        var offsetX = Math.floor(Math.random() * 11) - 5; // -5px 〜 +5px
+        var offsetY = Math.floor(Math.random() * 11) - 5; // -5px 〜 +5px
+        var wrapper = document.getElementById('clock-wrapper');
+        wrapper.style.webkitTransform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
+        wrapper.style.transform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
+      }
     }
 
     setInterval(updateClock, 1000);
