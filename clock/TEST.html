@@ -1,1 +1,214 @@
 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <title>Custom Font Clock</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    #clock-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 1s ease, opacity 0.5s ease;
+    }
+
+    #time {
+      line-height: 1;
+      letter-spacing: 0.02em;
+      font-variant-numeric: lining-nums tabular-nums;
+      -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
+      font-feature-settings: "lnum" 1, "tnum" 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* コロン(:)だけを数字の中央に合わせて少し上に移動させる設定 */
+    #colon {
+      position: relative;
+      top: -0.07em;
+      margin: 0 0.02em;
+    }
+
+    #date {
+      color: #fa4;
+      letter-spacing: 0.05em;
+      -webkit-transform: scaleY(1.2);
+      transform: scaleY(1.2);
+      margin-bottom: 2vh;
+    }
+
+    #font-name {
+      font-size: 2.5vw;
+      color: #4f4;
+      letter-spacing: 0.05em;
+      font-family: -apple-system, sans-serif;
+    }
+
+    #tap-area {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+  </style>
+</head>
+<body>
+  <div id="clock-wrapper">
+    <div id="time">
+      <span id="hours">0</span><span id="colon">:</span><span id="minutes">00</span>
+    </div>
+    <div id="date">11/23 (Mon)</div>
+    <div id="font-name">MPLUSRounded1c-Medium</div>
+  </div>
+  <div id="tap-area"></div>
+
+  <script>
+    // =========================================================================================
+    // 設定リスト： ['fontname.ttf', 時刻サイズ(vw), 時刻scaleY, 時刻と日付の間隔(vh), 日付サイズ(vw)]
+    // =========================================================================================
+    var fontConfigs = [
+      ['MPLUSRounded1c-Medium.ttf', 32, 1.4, 6, 10],
+      ['NotoSans-SemiBold.ttf', 36, 1.4, 6, 10],
+      ['VarelaRound-Regular.ttf', 32, 1.4, 6, 10],
+      ['ZenMaruGothic-Bold.ttf', 40, 1.4, 6, 10],
+      ['ZenMaruGothic-Medium.ttf', 40, 1.35, 5.5, 10]
+    ];
+
+    // 夜間（22:00〜翌5:59）の明るさ設定（0.1 〜 1.0 で調整可能）
+    var NIGHT_OPACITY = 0.3;
+
+    // テストモード（true: タップごとに通常/夜間輝度を交互切替、false: 本来の時間帯で自動切替）
+    var TEST_MODE = true;
+    var isDimmedTest = false;
+
+    var currentIndex = 0;
+    var lastMinute = -1;
+
+    // @font-face を自動生成
+    var styleEl = document.createElement('style');
+    var cssRules = '';
+    for (var i = 0; i < fontConfigs.length; i++) {
+      var fileName = fontConfigs[i][0];
+      cssRules += "@font-face { font-family: 'CustomFont_" + i + "'; src: url('./" + fileName + "') format('truetype'); }\n";
+    }
+    styleEl.textContent = cssRules;
+    document.head.appendChild(styleEl);
+
+    // 輝度を反映する関数
+    function updateBrightness(rawHours) {
+      var wrapper = document.getElementById('clock-wrapper');
+      if (TEST_MODE) {
+        wrapper.style.opacity = isDimmedTest ? NIGHT_OPACITY : 1;
+      } else {
+        if (rawHours >= 22 || rawHours < 6) {
+          wrapper.style.opacity = NIGHT_OPACITY;
+        } else {
+          wrapper.style.opacity = 1;
+        }
+      }
+    }
+
+    // フォントとサイズ・間隔設定を適用する関数
+    function applyFont(index) {
+      var config = fontConfigs[index];
+      var fileName = config[0];
+      var timeSize = config[1];
+      var timeScaleY = config[2];
+      var gapSize = config[3];
+      var dateSize = config[4];
+
+      var fontFamilyName = "'CustomFont_" + index + "', sans-serif";
+      var timeEl = document.getElementById('time');
+      var dateEl = document.getElementById('date');
+
+      // 時刻のスタイル反映
+      timeEl.style.fontFamily = fontFamilyName;
+      timeEl.style.fontSize = timeSize + 'vw';
+      timeEl.style.webkitTransform = 'scaleY(' + timeScaleY + ')';
+      timeEl.style.transform = 'scaleY(' + timeScaleY + ')';
+      timeEl.style.marginBottom = gapSize + 'vh';
+
+      // 日付のスタイル反映
+      dateEl.style.fontFamily = fontFamilyName;
+      dateEl.style.fontSize = dateSize + 'vw';
+      
+      // 拡張子(.ttf)を取り除いて表示（テスト中は現在の透明度も併記）
+      var displayName = fileName.replace(/\.ttf$/i, '');
+      if (TEST_MODE) {
+        var currentOpacity = isDimmedTest ? NIGHT_OPACITY : 1;
+        displayName += ' [Opacity: ' + currentOpacity + ']';
+      }
+      document.getElementById('font-name').textContent = displayName;
+    }
+
+    function nextFont() {
+      currentIndex = (currentIndex + 1) % fontConfigs.length;
+      if (TEST_MODE) {
+        isDimmedTest = !isDimmedTest;
+        updateBrightness(new Date().getHours());
+      }
+      applyFont(currentIndex);
+    }
+
+    document.getElementById('tap-area').addEventListener('click', nextFont);
+
+    function updateClock() {
+      var now = new Date();
+      var rawHours = now.getHours();
+      
+      // 午前10時未満は先頭の0を省略（0〜9時 -> '0'〜'9'）
+      var hours = String(rawHours);
+      var minutes = ('0' + now.getMinutes()).slice(-2);
+      
+      var month = ('0' + (now.getMonth() + 1)).slice(-2);
+      var day = ('0' + now.getDate()).slice(-2);
+      var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      var dayName = days[now.getDay()];
+
+      document.getElementById('hours').textContent = hours;
+      document.getElementById('minutes').textContent = minutes;
+      document.getElementById('date').textContent = month + '/' + day + ' (' + dayName + ')';
+
+      updateBrightness(rawHours);
+
+      // 1分ごとの焼き付き防止
+      if (now.getMinutes() !== lastMinute) {
+        lastMinute = now.getMinutes();
+        var offsetX = Math.floor(Math.random() * 11) - 5;
+        var offsetY = Math.floor(Math.random() * 11) - 5;
+        var wrapper = document.getElementById('clock-wrapper');
+        wrapper.style.webkitTransform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
+        wrapper.style.transform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
+      }
+    }
+
+    applyFont(0);
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>
