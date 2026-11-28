@@ -107,14 +107,14 @@
             <div id="schedule">予定を読み込み中...</div>
         </div>
     </div>
-
-        <script>
+    <script>
         var lastMessage = '';
         var overrideSchedules = [];
-        var xhr = new XMLHttpRequest(); // メモリ節約のため通信オブジェクトを使い回す
+        var xhr = new XMLHttpRequest();
 
         // 日時文字列をDateオブジェクトに変換する関数
         function parseDateTime(str) {
+            if (!str) return null;
             var digits = str.replace(/[^0-9]/g, '');
             if (digits.length < 12) return null;
 
@@ -129,7 +129,6 @@
 
         // option.csv を読み込む関数
         function loadOptionCSV() {
-            // 前回の通信がまだ終わっていない場合はスキップ
             if (xhr.readyState !== 0 && xhr.readyState !== 4) {
                 return;
             }
@@ -149,8 +148,9 @@
 
                             var parts = line.split(',');
                             if (parts.length >= 3) {
-                                var start = parseDateTime(parts);
-                                var end = parseDateTime(parts);
+                                // ★ここを正しく修正しました（parts[0], parts[1]）
+                                var start = parseDateTime(parts[0]);
+                                var end = parseDateTime(parts[1]);
                                 var text = parts.slice(2).join(',').trim();
 
                                 if (start && end && text) {
@@ -164,6 +164,10 @@
                         }
                         overrideSchedules = parsed;
                         updateClock();
+                    } else if (xhr.status === 404) {
+                        // ファイルが見つからない場合のみ確認用メッセージを出す
+                        document.getElementById('schedule').innerHTML = 'option.csvが見つかりません';
+                        lastMessage = 'error';
                     }
                 }
             };
@@ -234,8 +238,11 @@
 
         // 1秒ごとに時計と表示判定を更新
         setInterval(updateClock, 1000);
-        // 10秒（10,000ミリ秒）ごとにoption.csvを再読み込み
+        // 10秒ごとにoption.csvを再読み込み
         setInterval(loadOptionCSV, 10000);
     </script>
+
+
+    
 </body>
 </html>
