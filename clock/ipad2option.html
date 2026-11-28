@@ -32,7 +32,7 @@
             font-size: 400px;
             font-weight: bold;
             line-height: 0.9;
-            letter-spacing: 10px;
+            letter-spacing: 5px;
             margin: 0;
             padding: 0;
         }
@@ -40,7 +40,7 @@
         /* 3. 【月日】のフォント・サイズ調整 */
         #date {
             font-family: "Helvetica Neue", Helvetica, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
-            font-size: 110pt;
+            font-size: 140pt;
             font-weight: bold;
             line-height: 1.1;
             letter-spacing: 0px;
@@ -64,7 +64,7 @@
             left: 1024px;
             white-space: nowrap;
             font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Helvetica Neue", sans-serif;
-            font-size: 110pt;
+            font-size: 140pt;
             font-weight: bold;
             color: #ff9900;
             line-height: 1.15;
@@ -192,7 +192,7 @@
             // 2行目：m/dd ＊曜日 表記
             var month = now.getMonth() + 1;
             var day = ('0' + now.getDate()).slice(-2);
-            var daysOfWeek = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
+            var daysOfWeek = ['日曜', '月曜', '火曜', '水曜', '木曜', '金曜', '土曜'];
             var dayOfWeek = daysOfWeek[now.getDay()];
             document.getElementById('date').innerHTML = month + '/' + day + ' ' + dayOfWeek;
 
