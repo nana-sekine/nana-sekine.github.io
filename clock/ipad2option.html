@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -30,7 +29,7 @@
         /* 2. 【時刻】のフォント・サイズ調整 */
         #time {
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-size: 350px;
+            font-size: 400px;
             font-weight: bold;
             line-height: 0.9;
             letter-spacing: -5px;
@@ -41,7 +40,7 @@
         /* 3. 【月日】のフォント・サイズ調整 */
         #date {
             font-family: "Helvetica Neue", Helvetica, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
-            font-size: 85pt;
+            font-size: 110pt;
             font-weight: bold;
             line-height: 1.1;
             letter-spacing: 0px;
@@ -50,13 +49,12 @@
             white-space: nowrap;
         }
 
-        /* 4. 【区切り線（ボーダー）】 */
+        /* 4. 【区切り線（ボーダー）】※線なし設定 */
         .divider {
             width: 90%;
-            height: 4px;
-            background-color: #00ffcc;
+            height: 0px;
             border: none;
-            margin: 15px auto 20px auto;
+            margin: 10px auto 20px auto;
         }
 
         /* 5. 【予定メッセージ（マーキー）】 */
@@ -70,7 +68,7 @@
         #schedule {
             display: inline-block;
             font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Helvetica Neue", sans-serif;
-            font-size: 95pt;
+            font-size: 110pt;
             font-weight: bold;
             color: #ff9900;
             line-height: 1.15;
@@ -112,16 +110,15 @@
 
     <script>
         var lastMessage = '';
-        var overrideSchedules = []; // CSVから読み込んだ予定を保持する配列
+        var overrideSchedules = [];
 
-        // 日時文字列（例: "2026-11-28-1000" や "2026-1128-1000"）をDateオブジェクトに変換する関数
+        // 日時文字列をDateオブジェクトに変換する関数
         function parseDateTime(str) {
-            // 数字以外の文字（ハイフンやスペースなど）をすべて除去して12桁の数字にする
             var digits = str.replace(/[^0-9]/g, '');
             if (digits.length < 12) return null;
 
             var year = parseInt(digits.substring(0, 4), 10);
-            var month = parseInt(digits.substring(4, 6), 10) - 1; // JSの月は0始まり
+            var month = parseInt(digits.substring(4, 6), 10) - 1;
             var day = parseInt(digits.substring(6, 8), 10);
             var hour = parseInt(digits.substring(8, 10), 10);
             var minute = parseInt(digits.substring(10, 12), 10);
@@ -129,10 +126,9 @@
             return new Date(year, month, day, hour, minute, 0);
         }
 
-        // option.csv を読み込む関数（古いiPad対応のXMLHttpRequestを使用）
+        // option.csv を読み込む関数
         function loadOptionCSV() {
             var xhr = new XMLHttpRequest();
-            // キャッシュ対策のためURLの末尾に現在時刻を付与
             var url = 'option.csv?t=' + new Date().getTime();
             xhr.open('GET', url, true);
 
@@ -148,12 +144,10 @@
 
                             var parts = line.split(',');
                             if (parts.length >= 3) {
-                                var start = parseDateTime(parts[0]);
-                                var end = parseDateTime(parts[1]);
-                                // メッセージ内にカンマが含まれていても結合して取得
+                                var start = parseDateTime(parts);
+                                var end = parseDateTime(parts);
                                 var text = parts.slice(2).join(',').trim();
 
-                                // 開始・終了日時が正しく解析できた行のみ追加（見出し行などは自動でスキップ）
                                 if (start && end && text) {
                                     parsed.push({
                                         start: start,
@@ -164,7 +158,7 @@
                             }
                         }
                         overrideSchedules = parsed;
-                        updateClock(); // 読み込み完了直後に画面を更新
+                        updateClock();
                     }
                 }
             };
@@ -192,7 +186,7 @@
                 var item = overrideSchedules[i];
                 if (now >= item.start && now <= item.end) {
                     message = item.text;
-                    break; // 該当する予定が見つかったら優先採用
+                    break;
                 }
             }
 
@@ -235,8 +229,8 @@
 
         // 1秒ごとに時計と表示判定を更新
         setInterval(updateClock, 1000);
-        // 5分（300,000ミリ秒）ごとにoption.csvを再読み込み
-        setInterval(loadOptionCSV, 300000);
+        // 5秒ごとにoption.csvを再読み込み
+        setInterval(loadOptionCSV, 3000);
     </script>
 
 </body>
