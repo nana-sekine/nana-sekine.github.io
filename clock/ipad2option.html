@@ -29,7 +29,7 @@
         /* 2. 【時刻】のフォント・サイズ調整 */
         #time {
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-size: 400px;
+            font-size: 350px;
             font-weight: bold;
             line-height: 0.9;
             letter-spacing: -5px;
@@ -40,7 +40,7 @@
         /* 3. 【月日】のフォント・サイズ調整 */
         #date {
             font-family: "Helvetica Neue", Helvetica, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
-            font-size: 120pt;
+            font-size: 85pt;
             font-weight: bold;
             line-height: 1.1;
             letter-spacing: 0px;
@@ -49,35 +49,25 @@
             white-space: nowrap;
         }
 
-        /* 4. 【予定メッセージ（マーキー）】※ボーダーなし */
+        /* 4. 【予定メッセージ（マーキー）】※JavaScript制御版 */
         .marquee-wrapper {
+            position: relative;
             width: 100%;
+            height: 150px; /* 文字が上下に切れない高さを確保 */
             overflow: hidden;
-            white-space: nowrap;
-            box-sizing: border-box;
-            margin-top: 30px; /* 月日と予定メッセージの間隔 */
+            margin-top: 30px;
         }
 
         #schedule {
-            display: inline-block;
+            position: absolute;
+            top: 0;
+            left: 1024px; /* 初期位置は画面外の右側 */
+            white-space: nowrap;
             font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Helvetica Neue", sans-serif;
-            font-size: 120pt;
+            font-size: 95pt;
             font-weight: bold;
             color: #ff9900;
             line-height: 1.15;
-            /* 秒数はJavaScriptで文字数に応じて自動上書きされます */
-            -webkit-animation: marquee 14s linear infinite;
-            animation: marquee 14s linear infinite;
-        }
-
-        /* 古いiPadのSafariでもチラつきなく完全に画面外へ消えるアニメーション定義 */
-        @-webkit-keyframes marquee {
-            0%   { margin-left: 100%;  -webkit-transform: translateX(0);     transform: translateX(0); }
-            100% { margin-left: -100%; -webkit-transform: translateX(-100%); transform: translateX(-100%); }
-        }
-        @keyframes marquee {
-            0%   { margin-left: 100%;  -webkit-transform: translateX(0);     transform: translateX(0); }
-            100% { margin-left: -100%; -webkit-transform: translateX(-100%); transform: translateX(-100%); }
         }
 
         /* iPadを縦置きにした時の自動縮小設定 */
@@ -85,7 +75,7 @@
             .clock-container { margin-top: -10px; }
             #time { font-size: 210px; letter-spacing: -2px; }
             #date { font-size: 55pt; margin-top: 25px; }
-            .marquee-wrapper { margin-top: 25px; }
+            .marquee-wrapper { margin-top: 25px; height: 95px; }
             #schedule { font-size: 55pt; }
         }
     </style>
@@ -104,6 +94,33 @@
         var lastMessage = '';
         var overrideSchedules = [];
         var xhr = new XMLHttpRequest();
+
+        // スクロール制御用の変数
+        var scheduleEl = document.getElementById('schedule');
+        var wrapperEl = document.querySelector('.marquee-wrapper');
+        var currentX = window.innerWidth || 1024;
+        var textWidth = 0;
+        var scrollSpeed = 4; // ★流れるスピード（1コマあたりの移動ピクセル数：大きいほど速い）
+
+        // 文字列の実際の横幅を再計測して右端待機位置へセットする関数
+        function resetMarqueePosition() {
+            var containerWidth = wrapperEl.offsetWidth || window.innerWidth || 1024;
+            textWidth = scheduleEl.offsetWidth;
+            currentX = containerWidth + 20; // 画面右端のさらに20px外側からスタート
+            scheduleEl.style.left = currentX + 'px';
+        }
+
+        // 1コマずつ滑らかに文字を左へ動かす関数（約30fpsで動作）
+        function stepMarquee() {
+            currentX -= scrollSpeed;
+            // 文字の最後尾が画面の左端(-textWidth)よりさらに50px左へ消えたら右端へ戻す
+            if (currentX < -(textWidth + 50)) {
+                var containerWidth = wrapperEl.offsetWidth || window.innerWidth || 1024;
+                textWidth = scheduleEl.offsetWidth; // 念のため幅を再取得
+                currentX = containerWidth + 20;
+            }
+            scheduleEl.style.left = currentX + 'px';
+        }
 
         // 日時文字列をDateオブジェクトに変換する関数
         function parseDateTime(str) {
@@ -217,17 +234,11 @@
                 }
             }
 
-            // メッセージが変わった時だけHTMLとアニメーション秒数を更新
+            // メッセージが変わった時だけHTMLを更新し、右端から再スタート
             if (message !== lastMessage) {
-                var scheduleEl = document.getElementById('schedule');
                 scheduleEl.innerHTML = message;
-
-                // ★文字数に応じてアニメーションの秒数を自動計算（基本10秒 + 1文字あたり0.35秒）
-                var duration = Math.round(10 + (message.length * 0.35));
-                scheduleEl.style.webkitAnimationDuration = duration + 's';
-                scheduleEl.style.animationDuration = duration + 's';
-
                 lastMessage = message;
+                resetMarqueePosition();
             }
         }
 
@@ -235,6 +246,8 @@
         updateClock();
         loadOptionCSV();
 
+        // 約33ミリ秒ごと（秒間30コマ）に文字を滑らかに移動
+        setInterval(stepMarquee, 33);
         // 1秒ごとに時計と表示判定を更新
         setInterval(updateClock, 1000);
         // 10秒ごとにoption.csvを再読み込み
