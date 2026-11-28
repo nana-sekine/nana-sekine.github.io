@@ -182,10 +182,15 @@
         function updateClock() {
             var now = new Date();
 
-            // 1行目：時刻（時:分のみ）
-            var hours = ('0' + now.getHours()).slice(-2);
+            // 1行目：時刻（12時間制・ゼロなし 例: 1:05, 12:30）
+            var rawHours = now.getHours();
+            var displayHours = rawHours % 12;
+            if (displayHours === 0) {
+                displayHours = 12; // 0時と12時は「12」にする
+            }
             var minutes = ('0' + now.getMinutes()).slice(-2);
-            document.getElementById('time').innerHTML = hours + ':' + minutes;
+            document.getElementById('time').innerHTML = displayHours + ':' + minutes;
+
 
             // 2行目：m/dd ＊曜日 表記
             var month = now.getMonth() + 1;
