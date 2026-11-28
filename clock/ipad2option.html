@@ -108,9 +108,10 @@
         </div>
     </div>
 
-    <script>
+        <script>
         var lastMessage = '';
         var overrideSchedules = [];
+        var xhr = new XMLHttpRequest(); // メモリ節約のため通信オブジェクトを使い回す
 
         // 日時文字列をDateオブジェクトに変換する関数
         function parseDateTime(str) {
@@ -128,7 +129,11 @@
 
         // option.csv を読み込む関数
         function loadOptionCSV() {
-            var xhr = new XMLHttpRequest();
+            // 前回の通信がまだ終わっていない場合はスキップ
+            if (xhr.readyState !== 0 && xhr.readyState !== 4) {
+                return;
+            }
+
             var url = 'option.csv?t=' + new Date().getTime();
             xhr.open('GET', url, true);
 
@@ -229,9 +234,8 @@
 
         // 1秒ごとに時計と表示判定を更新
         setInterval(updateClock, 1000);
-        // 5秒ごとにoption.csvを再読み込み
-        setInterval(loadOptionCSV, 3000);
+        // 10秒（10,000ミリ秒）ごとにoption.csvを再読み込み
+        setInterval(loadOptionCSV, 10000);
     </script>
-
 </body>
 </html>
