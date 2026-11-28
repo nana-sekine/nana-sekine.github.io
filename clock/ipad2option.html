@@ -29,10 +29,10 @@
         /* 2. 【時刻】のフォント・サイズ調整 */
         #time {
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            font-size: 350px;
+            font-size: 400px;
             font-weight: bold;
             line-height: 0.9;
-            letter-spacing: -5px;
+            letter-spacing: 0px;
             margin: 0;
             padding: 0;
         }
@@ -40,7 +40,7 @@
         /* 3. 【月日】のフォント・サイズ調整 */
         #date {
             font-family: "Helvetica Neue", Helvetica, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
-            font-size: 85pt;
+            font-size: 110pt;
             font-weight: bold;
             line-height: 1.1;
             letter-spacing: 0px;
@@ -53,7 +53,7 @@
         .marquee-wrapper {
             position: relative;
             width: 100%;
-            height: 150px; /* 文字が上下に切れない高さを確保 */
+            height: 150px;
             overflow: hidden;
             margin-top: 30px;
         }
@@ -61,10 +61,10 @@
         #schedule {
             position: absolute;
             top: 0;
-            left: 1024px; /* 初期位置は画面外の右側 */
+            left: 1024px;
             white-space: nowrap;
             font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Helvetica Neue", sans-serif;
-            font-size: 95pt;
+            font-size: 110pt;
             font-weight: bold;
             color: #ff9900;
             line-height: 1.15;
@@ -100,23 +100,20 @@
         var wrapperEl = document.querySelector('.marquee-wrapper');
         var currentX = window.innerWidth || 1024;
         var textWidth = 0;
-        var scrollSpeed = 4; // ★流れるスピード（1コマあたりの移動ピクセル数：大きいほど速い）
+        var scrollSpeed = 4; // ★流れるスピード（大きいほど速い）
 
-        // 文字列の実際の横幅を再計測して右端待機位置へセットする関数
         function resetMarqueePosition() {
             var containerWidth = wrapperEl.offsetWidth || window.innerWidth || 1024;
             textWidth = scheduleEl.offsetWidth;
-            currentX = containerWidth + 20; // 画面右端のさらに20px外側からスタート
+            currentX = containerWidth + 20;
             scheduleEl.style.left = currentX + 'px';
         }
 
-        // 1コマずつ滑らかに文字を左へ動かす関数（約30fpsで動作）
         function stepMarquee() {
             currentX -= scrollSpeed;
-            // 文字の最後尾が画面の左端(-textWidth)よりさらに50px左へ消えたら右端へ戻す
             if (currentX < -(textWidth + 50)) {
                 var containerWidth = wrapperEl.offsetWidth || window.innerWidth || 1024;
-                textWidth = scheduleEl.offsetWidth; // 念のため幅を再取得
+                textWidth = scheduleEl.offsetWidth;
                 currentX = containerWidth + 20;
             }
             scheduleEl.style.left = currentX + 'px';
@@ -158,8 +155,9 @@
 
                             var parts = line.split(',');
                             if (parts.length >= 3) {
-                                var start = parseDateTime(parts);
-                                var end = parseDateTime(parts);
+                                // ★確実に [0] と [1] を指定しています
+                                var start = parseDateTime(parts[0]);
+                                var end = parseDateTime(parts[1]);
                                 var text = parts.slice(2).join(',').trim();
 
                                 if (start && end && text) {
@@ -246,7 +244,7 @@
         updateClock();
         loadOptionCSV();
 
-        // 約33ミリ秒ごと（秒間30コマ）に文字を滑らかに移動
+        // 約33ミリ秒ごとに文字を滑らかに移動
         setInterval(stepMarquee, 33);
         // 1秒ごとに時計と表示判定を更新
         setInterval(updateClock, 1000);
