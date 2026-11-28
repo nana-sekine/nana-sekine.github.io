@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <!-- ホーム画面に追加した際にSafariの上部バーを消す設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>デジタル時計</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            color: #00ffcc;
+            overflow: hidden;
+        }
+
+        /* 1. 全体の位置 */
+        .clock-container {
+            width: 100%;
+            text-align: center;
+            margin-top: -40px;
+            padding-top: 0;
+        }
+
+
+        /* 2. 【時刻】のフォント・サイズ調整 */
+        #time {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 400px;
+            font-weight: bold;
+            line-height: 1.2;
+            letter-spacing: 5px;
+            /* ★左へ少し寄せる設定（マイナス値を大きくするとさらに左へ移動します） */
+            margin: 0 0 0 -25px;
+            padding: 0;
+        }
+
+
+
+        
+
+        /* 3. 【月日】のフォント・サイズ調整 */
+        #date {
+            font-family: "Helvetica Neue", Helvetica, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+            font-size: 140pt;
+            font-weight: bold;
+            line-height: 1.1;
+            letter-spacing: 0px;
+            margin-top: -5px;
+            padding: 0;
+            white-space: nowrap;
+        }
+
+        /* 4. 【予定メッセージ（マーキー）】※JavaScript制御版 */
+        .marquee-wrapper {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            margin-top: -15px;
+        }
+
+        #schedule {
+            position: absolute;
+            top: 0;
+            left: 1024px;
+            white-space: nowrap;
+            font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Helvetica Neue", sans-serif;
+            font-size: 140pt;
+            font-weight: bold;
+            color: #ff9900;
+            line-height: 1.15;
+        }
+
+        /* iPadを縦置きにした時の自動縮小設定 */
+        @media screen and (max-width: 800px) {
+            .clock-container { margin-top: -10px; }
+            #time { font-size: 210px; letter-spacing: -2px; }
+            #date { font-size: 55pt; margin-top: 25px; }
+            .marquee-wrapper { margin-top: 25px; height: 95px; }
+            #schedule { font-size: 55pt; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clock-container">
+        <div id="time">0:00</div>
+        <div id="date">1/01 日曜日</div>
+        <div class="marquee-wrapper">
+            <div id="schedule">予定を読み込み中...</div>
+        </div>
+    </div>
+
+    <script>
+        var lastMessage = '';
+        var overrideSchedules = [];
+        var xhr = new XMLHttpRequest();
+
+        // スクロール制御用の変数
+        var scheduleEl = document.getElementById('schedule');
+        var wrapperEl = document.querySelector('.marquee-wrapper');
+        var currentX = window.innerWidth || 1024;
+        var textWidth = 0;
+        var scrollSpeed = 4; // ★流れるスピード（大きいほど速い）
+
+        function resetMarqueePosition() {
+            var containerWidth = wrapperEl.offsetWidth || window.innerWidth || 1024;
+            textWidth = scheduleEl.offsetWidth;
+            currentX = containerWidth + 20;
+            scheduleEl.style.left = currentX + 'px';
+        }
+
+        function stepMarquee() {
+            currentX -= scrollSpeed;
+            if (currentX < -(textWidth + 50)) {
+                var containerWidth = wrapperEl.offsetWidth || window.innerWidth || 1024;
+                textWidth = scheduleEl.offsetWidth;
+                currentX = containerWidth + 20;
+            }
+            scheduleEl.style.left = currentX + 'px';
+        }
+
+        // 日時文字列をDateオブジェクトに変換する関数
+        function parseDateTime(str) {
+            if (!str) return null;
+            var digits = str.replace(/[^0-9]/g, '');
+            if (digits.length < 12) return null;
+
+            var year = parseInt(digits.substring(0, 4), 10);
+            var month = parseInt(digits.substring(4, 6), 10) - 1;
+            var day = parseInt(digits.substring(6, 8), 10);
+            var hour = parseInt(digits.substring(8, 10), 10);
+            var minute = parseInt(digits.substring(10, 12), 10);
+
+            return new Date(year, month, day, hour, minute, 0);
+        }
+
+        // option.csv を読み込む関数
+        function loadOptionCSV() {
+            if (xhr.readyState !== 0 && xhr.readyState !== 4) {
+                return;
+            }
+
+            var url = 'option.csv?t=' + new Date().getTime();
+            xhr.open('GET', url, true);
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        var lines = xhr.responseText.split(/\r\n|\n|\r/);
+                        var parsed = [];
+
+                        for (var i = 0; i < lines.length; i++) {
+                            var line = lines[i].trim();
+                            if (!line) continue;
+
+                            var parts = line.split(',');
+                            if (parts.length >= 3) {
+                                // ★確実に [0] と [1] を指定しています
+                                var start = parseDateTime(parts[0]);
+                                var end = parseDateTime(parts[1]);
+                                var text = parts.slice(2).join(',').trim();
+
+                                if (start && end && text) {
+                                    parsed.push({
+                                        start: start,
+                                        end: end,
+                                        text: text
+                                    });
+                                }
+                            }
+                        }
+                        overrideSchedules = parsed;
+                        updateClock();
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function updateClock() {
+            var now = new Date();
+
+            // 1行目：時刻（12時間制・1?12時表示 例: 1:05, 12:30）
+            var rawHours = now.getHours();
+            var displayHours = rawHours % 12;
+            if (displayHours === 0) {
+                displayHours = 12;
+            }
+            var minutes = ('0' + now.getMinutes()).slice(-2);
+            document.getElementById('time').innerHTML = displayHours + ':' + minutes;
+
+            // 2行目：m/dd ＊曜日 表記
+            var month = now.getMonth() + 1;
+            var day = ('0' + now.getDate()).slice(-2);
+            var daysOfWeek = ['日曜', '月曜', '火曜', '水曜', '木曜', '金曜', '土曜'];
+            var dayOfWeek = daysOfWeek[now.getDay()];
+            document.getElementById('date').innerHTML = month + '/' + day + ' ' + dayOfWeek;
+
+            // 3行目：まずCSVの臨時予定に該当する時間帯かチェック
+            var message = '';
+            for (var i = 0; i < overrideSchedules.length; i++) {
+                var item = overrideSchedules[i];
+                if (now >= item.start && now <= item.end) {
+                    message = item.text;
+                    break;
+                }
+            }
+
+            // CSVの該当予定がなければ、通常の曜日ごとの予定を判定
+            if (message === '') {
+                var currentHour = now.getHours();
+                var today = now.getDay();
+                var targetDay = today;
+                var prefix = '今日は';
+
+                // 切り替え時刻の判定（金曜日(5)は15時、それ以外は11時）
+                var switchHour = (today === 5) ? 15 : 11;
+
+                if (currentHour >= switchHour) {
+                    targetDay = (today + 1) % 7;
+                    prefix = '明日は';
+                }
+
+                if (targetDay === 0) {
+                    message = prefix + '予定なし';
+                } else if (targetDay === 1 || targetDay === 3) {
+                    message = prefix + 'リハビリ　8時45分';
+                } else if (targetDay === 2 || targetDay === 4 || targetDay === 6) {
+                    message = prefix + '透析　9時45分';
+                } else if (targetDay === 5) {
+                    message = prefix + '訪問看護 13時30分';
+                }
+            }
+
+            // メッセージが変わった時だけHTMLを更新し、右端から再スタート
+            if (message !== lastMessage) {
+                scheduleEl.innerHTML = message;
+                lastMessage = message;
+                resetMarqueePosition();
+            }
+        }
+
+        // 初回実行
+        updateClock();
+        loadOptionCSV();
+
+        // 約33ミリ秒ごとに文字を滑らかに移動
+        setInterval(stepMarquee, 33);
+        // 1秒ごとに時計と表示判定を更新
+        setInterval(updateClock, 1000);
+        // 10秒ごとにoption.csvを再読み込み
+        setInterval(loadOptionCSV, 10000);
+    </script>
+
+</body>
+</html>
