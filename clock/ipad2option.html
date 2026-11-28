@@ -57,6 +57,7 @@
             margin: 10px auto 20px auto;
         }
 
+
         /* 5. 【予定メッセージ（マーキー）】 */
         .marquee-wrapper {
             width: 100%;
@@ -68,24 +69,28 @@
         #schedule {
             display: inline-block;
             font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Helvetica Neue", sans-serif;
-            font-size: 110pt;
+            font-size: 95pt;
             font-weight: bold;
             color: #ff9900;
             line-height: 1.15;
-            padding-left: 100%;
+            /* padding-left を削除し、アニメーション側で制御します */
             -webkit-animation: marquee 12s linear infinite;
             animation: marquee 12s linear infinite;
         }
 
-        /* 古いiPadのSafari用アニメーション定義 */
+        /* 古いiPadのSafariでも文字が最後まで流れきるアニメーション定義 */
         @-webkit-keyframes marquee {
-            0%   { -webkit-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0); }
-            100% { -webkit-transform: translate3d(-100%, 0, 0); transform: translate3d(-100%, 0, 0); }
+            0%   { margin-left: 100%; -webkit-transform: translateX(0); transform: translateX(0); }
+            100% { margin-left: 0%;   -webkit-transform: translateX(-100%); transform: translateX(-100%); }
         }
         @keyframes marquee {
-            0%   { -webkit-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0); }
-            100% { -webkit-transform: translate3d(-100%, 0, 0); transform: translate3d(-100%, 0, 0); }
+            0%   { margin-left: 100%; -webkit-transform: translateX(0); transform: translateX(0); }
+            100% { margin-left: 0%;   -webkit-transform: translateX(-100%); transform: translateX(-100%); }
         }
+
+
+
+        
 
         /* iPadを縦置きにした時の自動縮小設定 */
         @media screen and (max-width: 800px) {
