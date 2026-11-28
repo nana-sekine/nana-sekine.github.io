@@ -40,7 +40,7 @@
         /* 3. 【月日】のフォント・サイズ調整 */
         #date {
             font-family: "Helvetica Neue", Helvetica, "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
-            font-size: 150pt;
+            font-size: 120pt;
             font-weight: bold;
             line-height: 1.1;
             letter-spacing: 0px;
@@ -49,55 +49,43 @@
             white-space: nowrap;
         }
 
-        /* 4. 【区切り線（ボーダー）】※線なし設定 */
-        .divider {
-            width: 90%;
-            height: 0px;
-            border: none;
-            margin: 0px auto 0px auto;
-        }
-
-
-        /* 5. 【予定メッセージ（マーキー）】 */
+        /* 4. 【予定メッセージ（マーキー）】※ボーダーなし */
         .marquee-wrapper {
             width: 100%;
             overflow: hidden;
             white-space: nowrap;
             box-sizing: border-box;
+            margin-top: 30px; /* 月日と予定メッセージの間隔 */
         }
 
         #schedule {
             display: inline-block;
             font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Helvetica Neue", sans-serif;
-            font-size: 95pt;
+            font-size: 120pt;
             font-weight: bold;
             color: #ff9900;
             line-height: 1.15;
-            /* padding-left を削除し、アニメーション側で制御します */
-            -webkit-animation: marquee 15s linear infinite;
-            animation: marquee 15s linear infinite;
+            /* 秒数はJavaScriptで文字数に応じて自動上書きされます */
+            -webkit-animation: marquee 14s linear infinite;
+            animation: marquee 14s linear infinite;
         }
 
-        /* 古いiPadのSafariでも文字が最後まで流れきるアニメーション定義 */
+        /* 古いiPadのSafariでもチラつきなく完全に画面外へ消えるアニメーション定義 */
         @-webkit-keyframes marquee {
-            0%   { margin-left: 100%; -webkit-transform: translateX(0); transform: translateX(0); }
-            100% { margin-left: 0%;   -webkit-transform: translateX(-100%); transform: translateX(-100%); }
+            0%   { margin-left: 100%;  -webkit-transform: translateX(0);     transform: translateX(0); }
+            100% { margin-left: -100%; -webkit-transform: translateX(-100%); transform: translateX(-100%); }
         }
         @keyframes marquee {
-            0%   { margin-left: 100%; -webkit-transform: translateX(0); transform: translateX(0); }
-            100% { margin-left: 0%;   -webkit-transform: translateX(-100%); transform: translateX(-100%); }
+            0%   { margin-left: 100%;  -webkit-transform: translateX(0);     transform: translateX(0); }
+            100% { margin-left: -100%; -webkit-transform: translateX(-100%); transform: translateX(-100%); }
         }
-
-
-
-        
 
         /* iPadを縦置きにした時の自動縮小設定 */
         @media screen and (max-width: 800px) {
             .clock-container { margin-top: -10px; }
             #time { font-size: 210px; letter-spacing: -2px; }
             #date { font-size: 55pt; margin-top: 25px; }
-            .divider { margin: 20px auto 15px auto; }
+            .marquee-wrapper { margin-top: 25px; }
             #schedule { font-size: 55pt; }
         }
     </style>
@@ -105,13 +93,13 @@
 <body>
 
     <div class="clock-container">
-        <div id="time">00:00</div>
+        <div id="time">0:00</div>
         <div id="date">1/01 日曜日</div>
-        <div class="divider"></div>
         <div class="marquee-wrapper">
             <div id="schedule">予定を読み込み中...</div>
         </div>
     </div>
+
     <script>
         var lastMessage = '';
         var overrideSchedules = [];
@@ -153,9 +141,8 @@
 
                             var parts = line.split(',');
                             if (parts.length >= 3) {
-                                // ★ここを正しく修正しました（parts[0], parts[1]）
-                                var start = parseDateTime(parts[0]);
-                                var end = parseDateTime(parts[1]);
+                                var start = parseDateTime(parts);
+                                var end = parseDateTime(parts);
                                 var text = parts.slice(2).join(',').trim();
 
                                 if (start && end && text) {
@@ -169,10 +156,6 @@
                         }
                         overrideSchedules = parsed;
                         updateClock();
-                    } else if (xhr.status === 404) {
-                        // ファイルが見つからない場合のみ確認用メッセージを出す
-                        document.getElementById('schedule').innerHTML = 'option.csvが見つかりません';
-                        lastMessage = 'error';
                     }
                 }
             };
@@ -182,20 +165,19 @@
         function updateClock() {
             var now = new Date();
 
-            // 1行目：時刻（12時間制・ゼロなし 例: 1:05, 12:30）
+            // 1行目：時刻（12時間制・1〜12時表示 例: 1:05, 12:30）
             var rawHours = now.getHours();
             var displayHours = rawHours % 12;
             if (displayHours === 0) {
-                displayHours = 12; // 0時と12時は「12」にする
+                displayHours = 12;
             }
             var minutes = ('0' + now.getMinutes()).slice(-2);
             document.getElementById('time').innerHTML = displayHours + ':' + minutes;
 
-
             // 2行目：m/dd ＊曜日 表記
             var month = now.getMonth() + 1;
             var day = ('0' + now.getDate()).slice(-2);
-            var daysOfWeek = ['日曜', '月曜', '火曜', '水曜', '木曜', '金曜', '土曜'];
+            var daysOfWeek = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
             var dayOfWeek = daysOfWeek[now.getDay()];
             document.getElementById('date').innerHTML = month + '/' + day + ' ' + dayOfWeek;
 
@@ -235,9 +217,16 @@
                 }
             }
 
-            // メッセージが変わった時だけHTMLを更新
+            // メッセージが変わった時だけHTMLとアニメーション秒数を更新
             if (message !== lastMessage) {
-                document.getElementById('schedule').innerHTML = message;
+                var scheduleEl = document.getElementById('schedule');
+                scheduleEl.innerHTML = message;
+
+                // ★文字数に応じてアニメーションの秒数を自動計算（基本10秒 + 1文字あたり0.35秒）
+                var duration = Math.round(10 + (message.length * 0.35));
+                scheduleEl.style.webkitAnimationDuration = duration + 's';
+                scheduleEl.style.animationDuration = duration + 's';
+
                 lastMessage = message;
             }
         }
@@ -252,7 +241,5 @@
         setInterval(loadOptionCSV, 10000);
     </script>
 
-
-    
 </body>
 </html>
